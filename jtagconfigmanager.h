@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QVariant>
 
 class JtagConfigManager : public QObject
 {
@@ -12,25 +13,26 @@ public:
     explicit JtagConfigManager(QObject *parent = nullptr);
     ~JtagConfigManager();
 
-    void sendCommand(QString dataSent, QString newValue = "");
-    QByteArray dataBuffer;
-    bool isSocketConnected = false;
+    void sendCommand(QString adress, QString data = "");
+
 signals:
     void socketConnected();
-    void dataRecieved(QByteArray dataFromSocket);
+    void dataReceived(QByteArray dataFromSocket);
 
 private slots:
     void newConnectionHandler();
     void readyReadHandler();
     void disconnectedHandler();
-    void dataBuffered(QByteArray dataFromSocket);
 
 private:
+    bool isSocketConnected = false;
     quint16 configPort = 2541;
     QTcpServer configServer;
-    QTcpSocket* m_currentSocket;
-
+    QTcpSocket* m_socket;
     static const int photoPacketByteSize = 26;
+    QByteArray dataFormaterIn(QString adress, QString data);
+    QString IntToHexConverter(QString data);
+    QPair<QString, QString> dataFormaterOut(QByteArray dataReceived);
 };
 
 #endif // JTAGCONFIGMANAGER_H

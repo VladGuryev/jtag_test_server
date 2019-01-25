@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 
     JtagConfigManager manager;
 
-    QProcess* quartusStpProcess = new QProcess;
+    QProcess* quartusStpProcess = new QProcess(&a);
     QString argument;
     argument = "\"C:/altera/14.1/qprogrammer/bin64/quartus_stp.exe\" -t \"D:/VGuryev/VVOD/build-vvod_slot-Desktop_Qt_5_10_1_MinGW_32bit-Debug/appdesktop/jtag_client.tcl\" 1 \"";
     quartusStpProcess->start(argument);
@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
         manager.sendCommand("0003");
         manager.sendCommand("000d");
         manager.sendCommand("0001");
-        delay(100);
-        qDebug() << "-----------------------------------------------";
+        delay(500);
+        qDebug() << "----------------------";
     }
 
 
