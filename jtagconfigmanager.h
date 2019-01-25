@@ -26,7 +26,7 @@ private slots:
     void dataBuffered(QByteArray dataFromSocket);
 
 private:
-    quint16 configPort = 2540;
+    quint16 configPort = 2541;
     QTcpServer configServer;
     QTcpSocket* m_currentSocket;
 
