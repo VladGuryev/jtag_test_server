@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QVariant>
 
 class JtagConfigManager : public QObject
 {
@@ -12,12 +11,21 @@ class JtagConfigManager : public QObject
 public:
     explicit JtagConfigManager(QObject *parent = nullptr);
     ~JtagConfigManager();
-
     void sendCommand(QString adress, QString data = "");
 
 signals:
     void socketConnected();
-    void dataReceived(QByteArray dataFromSocket);
+    /**
+     * @brief rawDataReceived
+     * @param dataFromSocket - возвращает сырой набор байтов hex
+     */
+    void rawDataReceived(QByteArray dataFromSocket);
+    /**
+     * @brief parsedDataReceived
+     * @param adrValue - (first, last) строчное представление hex-числа
+     * возвращает распарсенную пару адреса и значения в hex в стринге
+     */
+    void parsedDataReceived(QPair<QString, QString> adrValue);
 
 private slots:
     void newConnectionHandler();
@@ -25,14 +33,14 @@ private slots:
     void disconnectedHandler();
 
 private:
-    bool isSocketConnected = false;
-    quint16 configPort = 2541;
-    QTcpServer configServer;
+    quint16 port_cc = 2541;
+    QTcpServer* configServer;
     QTcpSocket* m_socket;
+    bool isSocketConnected = false;
     static const int photoPacketByteSize = 26;
     QByteArray dataFormaterIn(QString adress, QString data);
-    QString IntToHexConverter(QString data);
     QPair<QString, QString> dataFormaterOut(QByteArray dataReceived);
+    QString IntToHexConverter(QString data);
 };
 
 #endif // JTAGCONFIGMANAGER_H

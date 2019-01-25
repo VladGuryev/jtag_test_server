@@ -22,16 +22,28 @@ int main(int argc, char *argv[])
         while(QTime::currentTime() < dieTime) {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
         }};
-    delay(2000);
+    delay(1500);
 
-    while(1){
-        manager.sendCommand("0004");
-        manager.sendCommand("000e");
-        manager.sendCommand("0003");
-        manager.sendCommand("000d");
+    int i = 1000;
+    while(i>0){
+        qDebug() << "READING:";
+//        manager.sendCommand("0004");
+//        manager.sendCommand("000e");
+//        manager.sendCommand("0003");
+//        manager.sendCommand("000d");
         manager.sendCommand("0001");
-        delay(500);
-        qDebug() << "----------------------";
+        qDebug() << "WRITING PROCESS";
+        manager.sendCommand("4001", "111");
+        delay(4000);
+        qDebug() << "----------------------\n";
+        qDebug() << "READING:";
+        manager.sendCommand("0001");
+        qDebug() << "WRITING PROCESS";
+        manager.sendCommand("4001", "222");
+        delay(4000);
+        qDebug() << "----------------------\n";
+
+        i--;
     }
 
 

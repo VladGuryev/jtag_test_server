@@ -2,17 +2,18 @@
 
 JtagConfigManager::JtagConfigManager(QObject *parent) : QObject(parent)
 {
-    connect(&configServer, SIGNAL(newConnection()), this, SLOT(newConnectionHandler()));
-    configServer.listen(QHostAddress::LocalHost, configPort);
+    configServer = new QTcpServer(this);
+    connect(configServer, SIGNAL(newConnection()), this, SLOT(newConnectionHandler()));
+    configServer->listen(QHostAddress::LocalHost, port_cc);
 }
 
 
 void JtagConfigManager::newConnectionHandler()
 {
     qDebug() << "newConnectionHandler";
-    while (configServer.hasPendingConnections()){
+    while (configServer->hasPendingConnections()){
         m_socket = new QTcpSocket(this);
-        m_socket = configServer.nextPendingConnection();
+        m_socket = configServer->nextPendingConnection();
         connect(m_socket, SIGNAL(disconnected()), SLOT(disconnectedHandler()));
         connect(m_socket, SIGNAL(readyRead()), SLOT(readyReadHandler()));
 
@@ -30,6 +31,7 @@ void JtagConfigManager::newConnectionHandler()
  * @brief ConfigTcpServer::sendCommand(QString adrSent, QString newValue)
  * метод отправл€ет запрос (его нужно сформировать) дл€ того чтобы плис вернула ответ,
  * вроде того что в такой то €чейке лежит некоторое число
+ * ‘ункци€ отправл€ет строку, котора€ €вл€етс€ hex выражением, A = 10 и т.д.
  * @param
  */
 void JtagConfigManager::sendCommand(QString adress, QString data)
@@ -39,10 +41,18 @@ void JtagConfigManager::sendCommand(QString adress, QString data)
     QByteArray byteArrDataSent = dataFormaterIn(adress, data);
 
     if(m_socket->state() == QAbstractSocket::ConnectedState && m_socket != Q_NULLPTR){
-        //qDebug() << "Qbytearray to the socket: " << byteArrDataSent;
+       // qDebug() << "Qbytearray to the socket: " << byteArrDataSent;
         qint64 i = m_socket->write(byteArrDataSent);
-        m_socket->waitForBytesWritten(10);
+        m_socket->waitForBytesWritten(100);
       //  qDebug() << "data  sent to the fpga: " << "i = " << i << " data : " << adrSent;
+        if(data != ""){
+//            QString setConfigAdress = "4002";
+//            QString setConfigValue = "1";
+//            QByteArray applyByteArray = dataFormaterIn(setConfigAdress, setConfigValue);
+//            qDebug() << "applyByteArray: " << applyByteArray;
+//            qint64 i = m_socket->write(applyByteArray);
+//            m_socket->waitForBytesWritten(10);
+        }
     } else {
       //  qDebug() << "connection between socket and jtag failed";
     }
@@ -64,7 +74,7 @@ QByteArray JtagConfigManager::dataFormaterIn(QString adress, QString data)
         formatedData = (adress + endStr).toLatin1();
     } else {
         QString convertedValue = IntToHexConverter(data);
-        formatedData = (data + " " + convertedValue + "\r\n").toLatin1();
+        formatedData = (adress + " " + convertedValue + "\r\n").toLatin1();
     }
     return formatedData;
 }
@@ -102,6 +112,8 @@ QPair<QString, QString> JtagConfigManager::dataFormaterOut(QByteArray dataReceiv
             receivedValue.append(stringizedData.at(i));
         }
     }
+    if(receivedValue == "")
+        receivedValue = "0";
     return qMakePair(receiverAdres, receivedValue);
 }
 
@@ -111,8 +123,9 @@ void JtagConfigManager::readyReadHandler()
     QTcpSocket *socket = dynamic_cast<QTcpSocket *>(sender());
     if (socket != nullptr) {
         if (socket->bytesAvailable()) {
-            //emit this->dataReceived(socket->readLine(photoPacketByteSize));
             QByteArray dataReceived = socket->readLine(photoPacketByteSize);
+            emit this->rawDataReceived(dataReceived);
+            emit this->parsedDataReceived(dataFormaterOut(dataReceived));
             qDebug() << "adress: " << dataFormaterOut(dataReceived).first << "received: " <<
                         dataFormaterOut(dataReceived).second;
         }
@@ -121,5 +134,5 @@ void JtagConfigManager::readyReadHandler()
 
 JtagConfigManager::~JtagConfigManager()
 {
-
+    //delete configServer;
 }
