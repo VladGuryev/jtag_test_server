@@ -34,7 +34,7 @@ void JtagConfigManager::newConnectionHandler()
  * Функция отправляет строку, которая является hex выражением, A = 10 и т.д.
  * @param
  */
-void JtagConfigManager::sendCommand(QString adress, QString data)
+void JtagConfigManager::sendCommand(const QString adress, const QString data)
 {
     if(!isSocketConnected)
         return;
@@ -43,7 +43,7 @@ void JtagConfigManager::sendCommand(QString adress, QString data)
     if(m_socket->state() == QAbstractSocket::ConnectedState && m_socket != Q_NULLPTR){
        // qDebug() << "Qbytearray to the socket: " << byteArrDataSent;
         qint64 i = m_socket->write(byteArrDataSent);
-        m_socket->waitForBytesWritten(100);
+        m_socket->waitForBytesWritten(10);
       //  qDebug() << "data  sent to the fpga: " << "i = " << i << " data : " << adrSent;
         if(data != ""){
 //            QString setConfigAdress = "4002";
@@ -134,5 +134,6 @@ void JtagConfigManager::readyReadHandler()
 
 JtagConfigManager::~JtagConfigManager()
 {
-    //delete configServer;
+    m_socket->disconnect();
+    delete configServer;
 }

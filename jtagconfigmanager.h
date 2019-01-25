@@ -11,7 +11,7 @@ class JtagConfigManager : public QObject
 public:
     explicit JtagConfigManager(QObject *parent = nullptr);
     ~JtagConfigManager();
-    void sendCommand(QString adress, QString data = "");
+    void sendCommand(const QString adress, const QString data = "");
 
 signals:
     void socketConnected();
@@ -38,6 +38,8 @@ private:
     QTcpSocket* m_socket;
     bool isSocketConnected = false;
     static const int photoPacketByteSize = 26;
+
+private:
     QByteArray dataFormaterIn(QString adress, QString data);
     QPair<QString, QString> dataFormaterOut(QByteArray dataReceived);
     QString IntToHexConverter(QString data);

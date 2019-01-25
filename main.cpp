@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    JtagConfigManager manager;
+    JtagConfigManager manager(&a);
 
     QProcess* quartusStpProcess = new QProcess(&a);
     QString argument;
@@ -24,24 +24,26 @@ int main(int argc, char *argv[])
         }};
     delay(1500);
 
-    int i = 1000;
+
+    int i = 4;
     while(i>0){
         qDebug() << "READING:";
 //        manager.sendCommand("0004");
 //        manager.sendCommand("000e");
 //        manager.sendCommand("0003");
 //        manager.sendCommand("000d");
-        manager.sendCommand("0001");
-        qDebug() << "WRITING PROCESS";
-        manager.sendCommand("4001", "111");
-        delay(4000);
-        qDebug() << "----------------------\n";
-        qDebug() << "READING:";
-        manager.sendCommand("0001");
-        qDebug() << "WRITING PROCESS";
-        manager.sendCommand("4001", "222");
-        delay(4000);
-        qDebug() << "----------------------\n";
+        //manager.sendCommand("0001");
+          manager.sendCommand("0095");
+//        qDebug() << "WRITING PROCESS";
+//        manager.sendCommand("4001", "111");
+//        delay(500);
+//        qDebug() << "----------------------\n";
+//        qDebug() << "READING:";
+//        manager.sendCommand("0001");
+//        qDebug() << "WRITING PROCESS";
+//        manager.sendCommand("4001", "222");
+        delay(2000);
+//        qDebug() << "----------------------\n";
 
         i--;
     }
