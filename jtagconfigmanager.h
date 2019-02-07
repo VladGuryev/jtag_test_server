@@ -12,7 +12,8 @@ public:
     explicit JtagConfigManager(QObject *parent = nullptr);
     ~JtagConfigManager();
     void sendCommand(const QString adress, const QString data = "");
-
+    void setPort(quint16 new_port);
+    void runServer();
 signals:
     void socketConnected();
     /**

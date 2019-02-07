@@ -2,11 +2,14 @@
 
 JtagConfigManager::JtagConfigManager(QObject *parent) : QObject(parent)
 {
+}
+
+void JtagConfigManager::runServer()
+{
     configServer = new QTcpServer(this);
     connect(configServer, SIGNAL(newConnection()), this, SLOT(newConnectionHandler()));
     configServer->listen(QHostAddress::LocalHost, port_cc);
 }
-
 
 void JtagConfigManager::newConnectionHandler()
 {
@@ -36,27 +39,23 @@ void JtagConfigManager::newConnectionHandler()
  */
 void JtagConfigManager::sendCommand(const QString adress, const QString data)
 {
-    if(!isSocketConnected)
+    if(!isSocketConnected){
+        qDebug() << "can't send data. socket is not connected";
         return;
+    }
     QByteArray byteArrDataSent = dataFormaterIn(adress, data);
 
     if(m_socket->state() == QAbstractSocket::ConnectedState && m_socket != Q_NULLPTR){
-       // qDebug() << "Qbytearray to the socket: " << byteArrDataSent;
         qint64 i = m_socket->write(byteArrDataSent);
         m_socket->waitForBytesWritten(10);
+       // qDebug() << "Qbytearray to the socket: " << byteArrDataSent;
       //  qDebug() << "data  sent to the fpga: " << "i = " << i << " data : " << adrSent;
-        if(data != ""){
-//            QString setConfigAdress = "4002";
-//            QString setConfigValue = "1";
-//            QByteArray applyByteArray = dataFormaterIn(setConfigAdress, setConfigValue);
-//            qDebug() << "applyByteArray: " << applyByteArray;
-//            qint64 i = m_socket->write(applyByteArray);
-//            m_socket->waitForBytesWritten(10);
-        }
-    } else {
-      //  qDebug() << "connection between socket and jtag failed";
     }
+}
 
+void JtagConfigManager::setPort(quint16 new_port)
+{
+    this->port_cc = new_port;
 }
 
 void JtagConfigManager::disconnectedHandler()
@@ -73,6 +72,7 @@ QByteArray JtagConfigManager::dataFormaterIn(QString adress, QString data)
     if(data == ""){
         formatedData = (adress + endStr).toLatin1();
     } else {
+        adress[0] = '4'; //чтобы отправить данные на чтение, необходимо писать в регистр, но 0-ой символ д.б. = 4
         QString convertedValue = IntToHexConverter(data);
         formatedData = (adress + " " + convertedValue + "\r\n").toLatin1();
     }
@@ -119,21 +119,20 @@ QPair<QString, QString> JtagConfigManager::dataFormaterOut(QByteArray dataReceiv
 
 void JtagConfigManager::readyReadHandler()
 {
-    // qDebug() << "readyReadHandler()";
     QTcpSocket *socket = dynamic_cast<QTcpSocket *>(sender());
     if (socket != nullptr) {
         if (socket->bytesAvailable()) {
             QByteArray dataReceived = socket->readLine(photoPacketByteSize);
             emit this->rawDataReceived(dataReceived);
             emit this->parsedDataReceived(dataFormaterOut(dataReceived));
-            qDebug() << "adress: " << dataFormaterOut(dataReceived).first << "received: " <<
-                        dataFormaterOut(dataReceived).second;
+//            qDebug() << "adress: " << dataFormaterOut(dataReceived).first << "received: " <<
+//                        dataFormaterOut(dataReceived).second;
         }
     }
 }
 
 JtagConfigManager::~JtagConfigManager()
 {
-    m_socket->disconnect();
+    configServer->disconnect(configServer, SIGNAL(newConnection()), this, SLOT(newConnectionHandler()));
     delete configServer;
 }
